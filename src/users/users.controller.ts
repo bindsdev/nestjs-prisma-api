@@ -6,11 +6,11 @@ import {
   Patch,
   Body,
   Param,
-  UseFilters,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { User as UserModel } from '@prisma/client';
 import { UsersService } from './users.service';
-import { HttpExceptionFilter } from '../exceptions/http-exception.filter';
 import { MissingRequiredFieldException } from '../exceptions/missing-required-field.exception';
 
 @Controller('users')
@@ -24,7 +24,6 @@ export class UsersController {
   }
 
   @Post('create')
-  @UseFilters(HttpExceptionFilter)
   async createUser(@Body() user: UserModel): Promise<UserModel> {
     const { username, email } = user;
 
@@ -44,24 +43,32 @@ export class UsersController {
 
   @Delete('delete/:id')
   async deleteUser(@Param('id') id: number): Promise<UserModel> {
-    const deletedUser = await this.usersService.user.delete({
-      where: {
-        id: Number(id),
-      },
-    });
+    try {
+      const deletedUser = await this.usersService.user.delete({
+        where: {
+          id: Number(id),
+        },
+      });
 
-    return deletedUser;
+      return deletedUser;
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
   @Get('user/:id')
   async getUserById(@Param('id') id: number): Promise<UserModel> {
-    const fetchedUser = await this.usersService.user.findUnique({
-      where: {
-        id: Number(id),
-      },
-    });
+    try {
+      const fetchedUser = await this.usersService.user.findUnique({
+        where: {
+          id: Number(id),
+        },
+      });
 
-    return fetchedUser;
+      return fetchedUser;
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
   @Patch('user/update/:id')
@@ -69,16 +76,20 @@ export class UsersController {
     @Param('id') id: number,
     @Body() user: UserModel,
   ): Promise<UserModel> {
-    const updatedUser = await this.usersService.user.update({
-      where: {
-        id: Number(id),
-      },
-      data: {
-        username: user.username,
-        email: user.email,
-      },
-    });
+    try {
+      const updatedUser = await this.usersService.user.update({
+        where: {
+          id: Number(id),
+        },
+        data: {
+          username: user.username,
+          email: user.email,
+        },
+      });
 
-    return updatedUser;
+      return updatedUser;
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 }

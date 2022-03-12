@@ -1,6 +1,4 @@
 *.env
-invalid-id.exception.ts 
-user-not-found.exception.ts
 
 # compiled output
 /dist
